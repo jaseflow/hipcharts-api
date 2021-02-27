@@ -30,7 +30,7 @@ let spotifyApi = new SpotifyWebApi({
 const authOptions = {
   url: 'https://accounts.spotify.com/api/token',
   headers: {
-    'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64'))
+    'Authorization': 'Basic ' + (Buffer.from(client_id + ':' + client_secret).toString('base64'))
   },
   form: {
     grant_type: 'client_credentials',
@@ -49,7 +49,7 @@ app.use(cors())
 app.use(bodyParser.json())
 
 // routes
-app.get('/:id', (req, res) => {
+app.get('/charts/:id', (req, res) => {
   const id = req.params.id
   let sql = `SELECT * FROM charts where id = ${id}`
   db.query(sql, (err, data, fields) => {
@@ -62,7 +62,7 @@ app.get('/:id', (req, res) => {
   })
 })
 
-app.get('/all', (req, res) => {
+app.get('/charts/all', (req, res) => {
   let sql = `SELECT * FROM charts`
   db.query(sql, (err, data, fields) => {
     if (err) throw err
@@ -74,7 +74,7 @@ app.get('/all', (req, res) => {
   })
 })
 
-app.post('/new', (req, res) => {
+app.post('/charts/new', (req, res) => {
   let sql = `INSERT INTO charts(type, artist, items) VALUES (?)`
   let values = [
     req.body.type,
@@ -90,7 +90,7 @@ app.post('/new', (req, res) => {
   })
 })
 
-app.get('/search/artist', (req, res) => {
+app.get('/search/artists', (req, res) => {
   const artist = req.query.artist
   console.log(spotifyApi)
   spotifyApi.searchArtists(artist)
@@ -107,12 +107,21 @@ app.get('/search/artist', (req, res) => {
     })
 })
 
-app.get('/search/track', (req, res) => {
+app.get('/search/tracks', (req, res) => {
+  const track = req.query.track
   const artist = req.query.artist
-  spotifyApi.searchArtists(artist)
+  let query 
+
+  if (artist && artist.length) {
+    query = `track: ${track} artist: ${artist}`
+  } else {
+    query = track
+  }
+
+  spotifyApi.searchTracks(query)
     .then((data) => {
       console.log('Artist information', data.body)
-      const results = data.body.artists.items
+      const results = data.body.tracks.items
       if (results.length) {
         res.status(200).send(results)
       } else {
