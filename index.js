@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const mysql = require('mysql')
+const mysql = require('mysql2')
 const bodyParser = require('body-parser')
 
 const SpotifyWebApi = require('spotify-web-api-node')
@@ -8,12 +8,16 @@ const request = require('request')
 
 const app = express()
 
+const uniqBy = require('lodash.uniqby')
+
 db = mysql.createConnection({
   host: 'localhost',
   user: 'hipcharts',
   password: '',
   database: 'hipcharts'
 })
+
+const resultsLimit = 8
 
 const server = {
   port: 4040
@@ -49,7 +53,7 @@ app.use(cors())
 app.use(bodyParser.json())
 
 // routes
-app.get('/charts/:id', (req, res) => {
+app.get('/chart/:id', (req, res) => {
   const id = req.params.id
   let sql = `SELECT * FROM charts where id = ${id}`
   db.query(sql, (err, data, fields) => {
@@ -63,7 +67,7 @@ app.get('/charts/:id', (req, res) => {
 })
 
 app.get('/charts/all', (req, res) => {
-  let sql = `SELECT * FROM charts`
+  let sql = 'SELECT * FROM charts'
   db.query(sql, (err, data, fields) => {
     if (err) throw err
     res.json({
@@ -75,30 +79,55 @@ app.get('/charts/all', (req, res) => {
 })
 
 app.post('/charts/new', (req, res) => {
-  let sql = `INSERT INTO charts(type, artist, items) VALUES (?)`
+  let sql = "INSERT INTO charts (type, items) VALUES (?, ?)"
   let values = [
     req.body.type,
-    req.body.artist || null,
-    req.body.items
+    req.body.items,
   ]
-  db.query(sql, [values], (err, data, fields) => {
+  db.query(sql, values, (err, data) => {
     if (err) throw err
-    res.json({
-      status: 200,
-      message: 'New chart added succesfully'
-    })
+    res.status(200).send(data);
   })
+})
+
+app.get('/search/albums', (req, res) => {
+  const album = req.query.album
+  spotifyApi.search(album, ['album'], { limit: resultsLimit })
+    .then((data) => {
+      const results = data.body.albums.items
+      const uniqResults = uniqBy(results, 'name')
+      const uniqResultsWithImages = uniqResults.filter((r) => {
+        if (r.images.length) {
+          return true
+        } else {
+          return false
+        }
+      })
+      if (results.length) {
+        res.status(200).send(uniqResultsWithImages)
+      } else {
+        res.status(200).send(null)
+      }
+    }).catch((err) => {
+      res.send(err)
+    })
 })
 
 app.get('/search/artists', (req, res) => {
   const artist = req.query.artist
-  console.log(spotifyApi)
-  spotifyApi.searchArtists(artist)
+  spotifyApi.searchArtists(artist, { limit: resultsLimit })
     .then((data) => {
-      console.log('Artist information', data.body)
       const results = data.body.artists.items
+      const uniqResults = uniqBy(results, 'name')
+      const uniqResultsWithImages = uniqResults.filter((r) => {
+        if (r.images.length) {
+          return true
+        } else {
+          return false
+        }
+      })
       if (results.length) {
-        res.status(200).send(results)
+        res.status(200).send(uniqResultsWithImages)
       } else {
         res.status(200).send(null)
       }
@@ -118,9 +147,8 @@ app.get('/search/tracks', (req, res) => {
     query = track
   }
 
-  spotifyApi.searchTracks(query)
+  spotifyApi.searchTracks(query, { limit: resultsLimit })
     .then((data) => {
-      console.log('Artist information', data.body)
       const results = data.body.tracks.items
       if (results.length) {
         res.status(200).send(results)
