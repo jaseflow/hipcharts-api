@@ -79,15 +79,48 @@ app.get('/charts/all', (req, res) => {
 })
 
 app.post('/charts/new', (req, res) => {
-  let sql = "INSERT INTO charts (type, items) VALUES (?, ?)"
+  let sql = "INSERT INTO charts (type, items, author) VALUES (?, ?, ?)"
   let values = [
     req.body.type,
     req.body.items,
+    req.body.author,
   ]
   db.query(sql, values, (err, data) => {
     if (err) throw err
     res.status(200).send(data);
   })
+})
+
+app.get('/albums', (req, res) => {
+  const ids = req.query.ids
+  const items = ids.split("|");
+  spotifyApi.getAlbums(items, { limit: resultsLimit })
+    .then((data) => {
+      const results = data.body.albums
+      if (results.length) {
+        res.status(200).send(results)
+      } else {
+        res.status(200).send(null)
+      }
+    }).catch((err) => {
+      res.send(err)
+    })
+})
+
+app.get('/artists', (req, res) => {
+  const ids = req.query.ids
+  const items = ids.split("|");
+  spotifyApi.getArtists(items)
+    .then((data) => {
+      const results = data.body.artists
+      if (results.length) {
+        res.status(200).send(results)
+      } else {
+        res.status(200).send(null)
+      }
+    }).catch((err) => {
+      res.send(err)
+    })
 })
 
 app.get('/search/albums', (req, res) => {
