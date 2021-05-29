@@ -55,7 +55,7 @@ app.use(bodyParser.json())
 // routes
 app.get('/chart/:id', (req, res) => {
   const id = req.params.id
-  let sql = `SELECT * FROM charts where id = ${id}`
+  let sql = `SELECT * FROM chart where id = ${id}`
   db.query(sql, (err, data, fields) => {
     if (err) throw err
     res.json({
@@ -67,7 +67,7 @@ app.get('/chart/:id', (req, res) => {
 })
 
 app.get('/charts/all', (req, res) => {
-  let sql = 'SELECT * FROM charts'
+  let sql = 'SELECT * FROM chart'
   db.query(sql, (err, data, fields) => {
     if (err) throw err
     res.json({
@@ -79,7 +79,7 @@ app.get('/charts/all', (req, res) => {
 })
 
 app.post('/charts/new', (req, res) => {
-  let sql = "INSERT INTO charts (type, items, author) VALUES (?, ?, ?)"
+  let sql = "INSERT INTO chart (type, items, author) VALUES (?, ?, ?)"
   let values = [
     req.body.type,
     req.body.items,
