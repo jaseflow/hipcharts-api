@@ -15,6 +15,14 @@ dotenv.config();
 
 db = mysql.createConnection(process.env.DATABASE_URL)
 
+db.connect((err) => {
+  if (err) {
+    console.log('Error code: ', err.code);
+    console.log('Error query was: ', err.sql);
+    console.log('Error message: ', err.sqlMessage);
+  }
+})
+
 const resultsLimit = 8
 
 const server = {
