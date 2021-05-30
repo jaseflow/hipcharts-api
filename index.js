@@ -10,12 +10,10 @@ const app = express()
 
 const uniqBy = require('lodash.uniqby')
 
-db = mysql.createConnection({
-  host: 'localhost',
-  user: 'hipcharts',
-  password: '',
-  database: 'hipcharts'
-})
+const dotenv = require('dotenv')
+dotenv.config();
+
+db = mysql.createConnection(process.env.DATABASE_URL)
 
 const resultsLimit = 8
 
