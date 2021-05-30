@@ -22,7 +22,7 @@ const server = {
 }
 
 const client_id = 'bbe2d8fef3624522ab3cd08c5934e6bb'
-const client_secret = 'ad74887dd6b24d20b3af20dd81bd778a'
+const client_secret = process.env.SPOTIFY_CLIENT_SECRET
 
 let spotifyApi = new SpotifyWebApi({
   clientId: client_id,
