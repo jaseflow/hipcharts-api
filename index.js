@@ -191,6 +191,6 @@ app.get('/search/tracks', (req, res) => {
     })
 })
 
-app.listen(server.port, () => {
+app.listen(process.env.PORT || server.port, () => {
   console.log(`Server started, listening on port ${server.port}`)
 })
