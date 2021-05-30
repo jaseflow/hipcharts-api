@@ -16,6 +16,7 @@ dotenv.config();
 db = mysql.createConnection(process.env.DATABASE_URL)
 
 db.connect((err) => {
+  console.log('logging')
   if (err) {
     console.log('Error code: ', err.code);
     console.log('Error query was: ', err.sql);
