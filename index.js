@@ -6,11 +6,6 @@ const bodyParser = require('body-parser')
 const SpotifyWebApi = require('spotify-web-api-node')
 const request = require('request')
 
-const cors = require('cors')
-
-app.use(cors())
-app.use(bodyParser.json())
-
 const app = express()
 
 const uniqBy = require('lodash.uniqby')
