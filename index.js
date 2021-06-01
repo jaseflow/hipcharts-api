@@ -10,8 +10,7 @@ const app = express()
 
 // use modules
 app.use(cors({
-  origin: 'https://hipcharts.com',
-  credentials: true
+  origin: 'https://hipcharts.com'
 }))
 
 const uniqBy = require('lodash.uniqby')
