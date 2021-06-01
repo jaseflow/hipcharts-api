@@ -8,11 +8,6 @@ const request = require('request')
 
 const app = express()
 
-// use modules
-app.use(cors({
-  origin: 'https://hipcharts.com'
-}))
-
 const uniqBy = require('lodash.uniqby')
 
 const dotenv = require('dotenv')
@@ -59,7 +54,8 @@ request.post(authOptions, (err, response, body) => {
   }
 })
 
-
+// use modules
+app.use(cors())
 app.use(bodyParser.json())
 
 // routes
@@ -158,6 +154,7 @@ app.get('/search/albums', (req, res) => {
 
 app.get('/search/artists', (req, res) => {
   const artist = req.query.artist
+  res.setHeader("Access-Control-Allow-Origin", 'http://hipcharts.com');
   spotifyApi.searchArtists(artist, { limit: resultsLimit })
     .then((data) => {
       const results = data.body.artists.items
