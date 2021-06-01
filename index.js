@@ -8,12 +8,6 @@ const request = require('request')
 
 const app = express()
 
-// use modules
-app.use(cors({
-  origin: 'https://api.hipcharts.com',
-  credentials: true
-}))
-
 const uniqBy = require('lodash.uniqby')
 
 const dotenv = require('dotenv')
@@ -59,6 +53,13 @@ request.post(authOptions, (err, response, body) => {
     spotifyApi.setAccessToken(body.access_token)
   }
 })
+
+
+// use modules
+app.use(cors({
+  origin: 'https://hipcharts.com',
+  credentials: true
+}))
 
 app.use(bodyParser.json())
 
