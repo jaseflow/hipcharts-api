@@ -6,6 +6,11 @@ const bodyParser = require('body-parser')
 const SpotifyWebApi = require('spotify-web-api-node')
 const request = require('request')
 
+const cors = require('cors')
+
+app.use(cors())
+app.use(bodyParser.json())
+
 const app = express()
 
 const uniqBy = require('lodash.uniqby')
@@ -55,7 +60,10 @@ request.post(authOptions, (err, response, body) => {
 })
 
 // use modules
-app.use(cors())
+app.use(cors({
+  origin: 'https://api.hipcharts.com',
+  credentials: true
+}))
 app.use(bodyParser.json())
 
 // routes
