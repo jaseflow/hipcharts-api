@@ -57,6 +57,7 @@ request.post(authOptions, (err, response, body) => {
 // use modules
 app.use(cors({
   origin: '*',
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true
 }))
 app.options('*', cors());  // enable pre-flight
