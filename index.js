@@ -56,7 +56,7 @@ request.post(authOptions, (err, response, body) => {
 
 // use modules
 app.use(cors({
-  origin: 'https://hipcharts.com',
+  origin: '*',
   credentials: true
 }))
 app.options('*', cors());  // enable pre-flight
