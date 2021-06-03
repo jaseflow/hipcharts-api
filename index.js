@@ -55,13 +55,13 @@ request.post(authOptions, (err, response, body) => {
 })
 
 // use modules
+app.use(bodyParser.json())
 app.use(cors({
   origin: '*',
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true
 }))
 app.options('*', cors());  // enable pre-flight
-app.use(bodyParser.json())
 
 // routes
 app.get('/chart/:id', (req, res) => {
