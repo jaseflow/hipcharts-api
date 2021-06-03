@@ -63,6 +63,7 @@ app.options('*', cors());  // enable pre-flight
 app.get('/chart/:id', (req, res) => {
   const id = req.params.id
   let sql = `SELECT * FROM chart where id = ${id}`
+  console.log(res);
   db.query(sql, (err, data, fields) => {
     if (err) throw err
     res.json({
