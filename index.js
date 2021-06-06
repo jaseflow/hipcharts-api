@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const mysql = require('mysql2')
+const mysql = require('mysql')
 const bodyParser = require('body-parser')
 
 const SpotifyWebApi = require('spotify-web-api-node')
