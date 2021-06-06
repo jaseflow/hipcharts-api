@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const mysql = require('mysql')
+const mysql = require('mysql2')
 const bodyParser = require('body-parser')
 
 const SpotifyWebApi = require('spotify-web-api-node')
@@ -71,6 +71,7 @@ app.get('/chart/:id', (req, res) => {
       message: `Successfully received chart ${id}`
     })
   })
+  db.end();
 })
 
 app.get('/charts/all', (req, res) => {
@@ -83,6 +84,7 @@ app.get('/charts/all', (req, res) => {
       message: 'All charts retreived successfully'
     })
   })
+  db.end();
 })
 
 app.post('/charts/new', (req, res) => {
@@ -98,6 +100,7 @@ app.post('/charts/new', (req, res) => {
     }
     res.status(200).send(data);
   })
+  db.end();
 })
 
 app.get('/albums', (req, res) => {
