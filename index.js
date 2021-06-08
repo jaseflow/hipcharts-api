@@ -13,15 +13,7 @@ const uniqBy = require('lodash.uniqby')
 const dotenv = require('dotenv')
 dotenv.config();
 
-db = mysql.createConnection(process.env.DATABASE_URL)
-
-db.connect((err) => {
-  if (err) {
-    console.log('Error code: ', err.code);
-    console.log('Error query was: ', err.sql);
-    console.log('Error message: ', err.sqlMessage);
-  }
-})
+const db = require('./db')
 
 const resultsLimit = 8
 
@@ -71,7 +63,6 @@ app.get('/chart/:id', (req, res) => {
       message: `Successfully received chart ${id}`
     })
   })
-  db.end();
 })
 
 app.get('/charts/all', (req, res) => {
@@ -84,7 +75,6 @@ app.get('/charts/all', (req, res) => {
       message: 'All charts retreived successfully'
     })
   })
-  db.end();
 })
 
 app.post('/charts/new', (req, res) => {
@@ -100,7 +90,6 @@ app.post('/charts/new', (req, res) => {
     }
     res.status(200).send(data);
   })
-  db.end();
 })
 
 app.get('/albums', (req, res) => {
