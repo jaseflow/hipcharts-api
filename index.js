@@ -40,11 +40,19 @@ const authOptions = {
   json: true
 }
 
-request.post(authOptions, (err, response, body) => {
-  if (!err && response.statusCode == 200) {
-    spotifyApi.setAccessToken(body.access_token)
-  }
-})
+function newToken() {
+  request.post(authOptions, (err, response, body) => {
+    if (!err && response.statusCode == 200) {
+      spotifyApi.setAccessToken(body.access_token)
+    }
+  })
+}
+
+// Get first token
+newToken();
+
+// Get a new token every hour
+setInterval(newToken, 1000 * 60 * 60);
 
 // use modules
 app.use(bodyParser.json())
