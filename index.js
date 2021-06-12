@@ -73,6 +73,27 @@ app.get('/chart/:id', (req, res) => {
   })
 })
 
+app.patch('/chart/:id', (req, res) => {
+  const id = req.params.id;
+  const cosigns = req.body && req.body.cosigns;
+
+  if (!cosigns && cosigns !== 'number') {
+    return
+  } else {
+    let sql = `
+      UPDATE chart
+        SET cosigns = ${cosigns}
+        WHERE id = ${id}
+    `;
+    db.query(sql, (err, data, fields) => {
+      if (err) {
+        console.log(err)
+      }
+      res.status(200).send(data);
+    })
+  }
+})
+
 app.get('/charts/all', (req, res) => {
   let sql = 'SELECT * FROM chart'
   db.query(sql, (err, data, fields) => {
@@ -86,11 +107,12 @@ app.get('/charts/all', (req, res) => {
 })
 
 app.post('/charts/new', (req, res) => {
-  let sql = "INSERT INTO chart (type, items, author) VALUES (?, ?, ?)"
+  let sql = "INSERT INTO chart (type, items, author, cosigns) VALUES (?, ?, ?, ?)"
   let values = [
     req.body.type,
     req.body.items,
     req.body.author,
+    0
   ]
   db.query(sql, values, (err, data) => {
     if (err) {
