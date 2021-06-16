@@ -1,60 +1,55 @@
 const fs = require('fs');
-const gm = require('gm');
+const gm = require('gm').subClass({imageMagick: true});
 const request = require('request');
 
 const dir = './tmp';
 
-module.exports = (images) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir);
-  }
+const createMontage = (images) => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+    }
 
-  const image1 = gm(request(images[0]))
-    .write('./tmp/image1.jpeg', (err) => {
-      if (!err) console.log('first one done')
-    })
-
-  const image2 = gm(request(images[1]))
-    .write('./tmp/image2.jpeg', (err) => {
-      if (!err) console.log('second one done')
-    })
-
-  const image3 = gm(request(images[2]))
-    .resize(426)
-    .write('./tmp/image3.jpeg', (err) => {
-      if (!err) console.log('third one done')
-    })
-
-  const image4 = gm(request(images[3]))
-    .resize(426)
-    .write('./tmp/image4.jpeg', (err) => {
-      if (!err) console.log('fourth one done')
-    })
-
-  const image5 = gm(request(images[4]))
-    .resize(426)
-    .write('./tmp/image5.jpeg', (err) => {
-      if (!err) console.log('fifth one done')
-    })
-
-  // WTF? horrific code but it works
-  setTimeout(() => {
-    Promise.all([image1, image2, image3, image4, image5])
-      .then(
-        gm('./tmp/image1.jpeg').append('./tmp/image2.jpeg', true)
-        .write('./tmp/topRow.jpeg', (err) => {
-          if (err) console.log(err);
+    const promises = images.map((url, i) => {
+        return new Promise((resolve) => {
+            gm(request(url)).write(`./tmp/image${i}.jpeg`, (err) => {
+                if (!err) console.log(`image ${i} done`)
+                resolve()
+            })
         })
-      ).then(
-        gm('./tmp/image3.jpeg').append('./tmp/image4.jpeg', './tmp/image5.jpeg', true)
-        .write('./tmp/bottomRow.jpeg', (err) => {
-          if (err) console.log(err);
+    })
+
+
+    Promise.all(promises)
+        .then(() => {
+            Promise.all([
+                new Promise((resolve) => {
+                    gm('./tmp/image0.jpeg').append('./tmp/image1.jpeg', true).write('./tmp/topRow.jpeg', (err) => {
+                        if (!err) console.log(`top row done`)
+                        resolve()
+                    })
+                }),
+                new Promise((resolve) => {
+                    gm('./tmp/image2.jpeg').append('./tmp/image3.jpeg', './tmp/image4.jpeg', true).write('./tmp/bottomRow.jpeg', (err) => {
+                        if (!err) console.log(`bottom row done`)
+                        // console.error(err)
+                        resolve()
+                    })
+                }),
+            ]).then(() => {
+                gm('./tmp/topRow.jpeg').append('./tmp/bottomRow.jpeg', false).write('./tmp/montage.jpeg', (err) => {
+                    if (err) console.log(err);
+                    console.log('MONTAGE DONE')
+                })
+            })
         })
-      ).then(
-        gm('./tmp/topRow.jpeg').append('./tmp/bottomRow.jpeg', false)
-        .write('./tmp/montage.jpeg', (err) => {
-          if (err) console.log(err);
-        })
-      )
-  }, 500)
 }
+
+// createMontage([
+//     'https://i.scdn.co/image/ab6761610000e5eb573d24167a5133632613bed0',
+//     'https://i.scdn.co/image/a02c89d6abef58ad10832020c06f6a8a38dd9a32',
+//     'https://i.scdn.co/image/ab67616d0000b273de3c04b5fc750b68899b20a9',
+//     'https://i.scdn.co/image/2fe4e2b96816f48a1af8545960dfaf4cb16c71bd',
+//     'https://i.scdn.co/image/e9c7d7e446f19d445898eb362417542b134863af'
+// ])
+
+module.exports = createMontage
