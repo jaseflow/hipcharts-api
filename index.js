@@ -14,6 +14,7 @@ const dotenv = require('dotenv')
 dotenv.config();
 
 const db = require('./db')
+const createMontage = require('./montage')
 
 const resultsLimit = 8
 
@@ -108,10 +109,13 @@ app.get('/charts/all', (req, res) => {
 
 app.post('/charts/new', (req, res) => {
   let sql = "INSERT INTO chart (type, items, author, cosigns) VALUES (?, ?, ?, ?)"
+  const { type, items, author } = req.body;
+  let images = []
+
   let values = [
-    req.body.type,
-    req.body.items,
-    req.body.author,
+    type,
+    items,
+    author,
     0
   ]
   db.query(sql, values, (err, data) => {
@@ -120,6 +124,29 @@ app.post('/charts/new', (req, res) => {
     }
     res.status(200).send(data);
   })
+
+  // this all seems shit
+  if (type === "artists") {
+    request.get(`http://localhost:4040/artists?ids=${items}`, (err, response) => {
+      if (!err && response.statusCode == 200) {
+        const items = JSON.parse(response.body);
+        for (let i = 0; i < items.length; i++) {
+          images.push(items[i].images[0].url);
+        }
+        createMontage(images)
+      }
+    })
+  }
+
+  // this all seems shit
+  if (type === "albums") {
+    request.get(`http://localhost:4040/albums?ids=${items}`, (err, response) => {
+      if (!err && response.statusCode == 200) {
+        console.log(response);
+      }
+    })
+  }
+
 })
 
 app.get('/albums', (req, res) => {
