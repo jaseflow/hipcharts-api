@@ -119,7 +119,7 @@ app.post('/charts/new', (req, res) => {
     0
   ]
   db.query(sql, values, (err, data) => {
-		const id = data.insertId;
+    const id = data.insertId;
     if (err) {
       console.log(err);
     }
@@ -133,16 +133,16 @@ app.post('/charts/new', (req, res) => {
         }
 
         createMontage(images, id)
-					.then((url) => {
-  					let sql = "UPDATE chart set montage=? where id=?"
-						db.query(sql, [url, id], (err, data, fields) => {
-							if (err) {
-								console.log(err)
-								return
-							}
-							console.log('Saved montage URL');
-						})
-					})
+          .then((url) => {
+            let sql = "UPDATE chart set montage=? where id=?"
+            db.query(sql, [url, id], (err, data, fields) => {
+              if (err) {
+                console.log(err)
+                return
+              }
+              console.log('Saved montage URL');
+            })
+          })
       } else {
         console.log('Error accessing item metadata URL');
       }
