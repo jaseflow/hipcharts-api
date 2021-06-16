@@ -119,33 +119,38 @@ app.post('/charts/new', (req, res) => {
     0
   ]
   db.query(sql, values, (err, data) => {
+		const id = data.insertId;
     if (err) {
       console.log(err);
     }
-    res.status(200).send(data);
-  })
 
-  // this all seems shit
-  if (type === "artists") {
-    request.get(`http://localhost:4040/artists?ids=${items}`, (err, response) => {
+    request.get(`${process.env.API_URL}/${type}?ids=${items}`, (err, response) => {
       if (!err && response.statusCode == 200) {
         const items = JSON.parse(response.body);
+
         for (let i = 0; i < items.length; i++) {
           images.push(items[i].images[0].url);
         }
-        createMontage(images)
-      }
-    })
-  }
 
-  // this all seems shit
-  if (type === "albums") {
-    request.get(`http://localhost:4040/albums?ids=${items}`, (err, response) => {
-      if (!err && response.statusCode == 200) {
-        console.log(response);
+        createMontage(images, id)
+					.then((url) => {
+  					let sql = "UPDATE chart set montage=? where id=?"
+						db.query(sql, [url, id], (err, data, fields) => {
+							if (err) {
+								console.log(err)
+								return
+							}
+							console.log('Saved montage URL');
+						})
+					})
+      } else {
+        console.log('Error accessing item metadata URL');
       }
     })
-  }
+
+    res.status(200).send(data);
+
+  })
 
 })
 
