@@ -14,6 +14,7 @@ const dotenv = require('dotenv')
 dotenv.config();
 
 const db = require('./db')
+const createMontage = require('./montage')
 
 const resultsLimit = 8
 
@@ -108,18 +109,49 @@ app.get('/charts/all', (req, res) => {
 
 app.post('/charts/new', (req, res) => {
   let sql = "INSERT INTO chart (type, items, author, cosigns) VALUES (?, ?, ?, ?)"
+  const { type, items, author } = req.body;
+  let images = []
+
   let values = [
-    req.body.type,
-    req.body.items,
-    req.body.author,
+    type,
+    items,
+    author,
     0
   ]
   db.query(sql, values, (err, data) => {
+    const id = data.insertId;
     if (err) {
       console.log(err);
     }
+
+    request.get(`${process.env.API_URL}/${type}?ids=${items}`, (err, response) => {
+      if (!err && response.statusCode == 200) {
+        const items = JSON.parse(response.body);
+
+        for (let i = 0; i < items.length; i++) {
+          images.push(items[i].images[0].url);
+        }
+
+        createMontage(images, id)
+          .then((url) => {
+            let sql = "UPDATE chart set montage=? where id=?"
+            db.query(sql, [url, id], (err, data, fields) => {
+              if (err) {
+                console.log(err)
+                return
+              }
+              console.log('Saved montage URL');
+            })
+          })
+      } else {
+        console.log('Error accessing item metadata URL');
+      }
+    })
+
     res.status(200).send(data);
+
   })
+
 })
 
 app.get('/albums', (req, res) => {

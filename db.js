@@ -1,6 +1,6 @@
 const mysql = require('mysql2')
 
-const pool = mysql.createPool({
+const db = mysql.createPool({
   connectionLimit: 10,
   host: process.env.DB_HOST,
   user: process.env.DB_USERNAME,
@@ -8,7 +8,7 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
 })
 
-pool.getConnection((err, connection) => {
+db.getConnection((err, connection) => {
   if (err) {
     if (err.code === 'PROTOCOL_CONNECTION_LOST') {
       console.error('Database connection was closed')
@@ -26,4 +26,4 @@ pool.getConnection((err, connection) => {
   return
 })
 
-module.exports = pool
+module.exports = db
