@@ -17,7 +17,7 @@ const createMontage = (images, id) => {
 
     const promises = images.map((url, i) => {
       return new Promise((resolve) => {
-        gm(request(url)).resize(i >=2 ? 426.666667 : 640).write(`./tmp/image${i}.jpeg`, (err) => {
+        gm(request(url)).gravity('Center').crop(640, 640).resize(i >=2 ? 426.666667 : 640).write(`./tmp/image${i}.jpeg`, (err) => {
           if (!err) console.log(`image ${i} done`)
           resolve()
         })
