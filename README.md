@@ -18,4 +18,13 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
-``
+```
+
+# Create Chart table
+```
+CREATE TABLE CHART (
+ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+NAME VARCHAR(30),
+QUERY VARCHAR(50),
+SUGGESTIONS VARCHAR(30))
+```

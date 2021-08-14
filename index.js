@@ -16,7 +16,7 @@ dotenv.config();
 const db = require('./db')
 const createMontage = require('./montage')
 
-const resultsLimit = 8
+const resultsLimit = 5
 
 const server = {
   port: 4040
@@ -61,20 +61,63 @@ app.use(cors({ origin: '*' }))
 app.options('*', cors());  // enable pre-flight
 
 // routes
-app.get('/chart/:id', (req, res) => {
-  const id = req.params.id
-  let sql = `SELECT * FROM chart where id = ${id}`
+app.post('/charts', (req, res) => {
+  let sql = "INSERT INTO CHART (name, query, suggestions) VALUES (?, ?, ?)"
+  const { name, query, suggestions } = req.body;
+
+  let values = [
+    name,
+    query,
+    suggestions,
+  ]
+
+  db.query(sql, values, (err, data) => {
+    if (err) {
+      console.log(err);
+    }
+    res.status(200).send(data);
+  });
+})
+
+app.get('/charts', (req, res) => {
+  let sql = 'SELECT * FROM CHART'
   db.query(sql, (err, data, fields) => {
     if (err) throw err
     res.json({
       status: 200,
       data,
-      message: `Successfully received chart ${id}`
+      message: 'All charts retreived successfully'
     })
   })
 })
 
-app.patch('/chart/:id', (req, res) => {
+app.get('/user-charts', (req, res) => {
+  let sql = 'SELECT * FROM user_chart'
+  db.query(sql, (err, data, fields) => {
+    if (err) throw err
+    res.json({
+      status: 200,
+      data,
+      message: 'All user-charts retreived successfully'
+    })
+  })
+})
+
+app.get('/user-charts/:id', (req, res) => {
+  const id = req.params.id
+  let sql = `SELECT * FROM user_chart where id = ${id}`
+  console.log(id)
+  db.query(sql, (err, data, fields) => {
+    if (err) throw err
+    res.json({
+      status: 200,
+      data,
+      message: `Successfully received user-chart ${id}`
+    })
+  })
+})
+
+app.patch('/user-charts/:id', (req, res) => {
   const id = req.params.id;
   const cosigns = req.body && req.body.cosigns;
 
@@ -82,7 +125,7 @@ app.patch('/chart/:id', (req, res) => {
     return
   } else {
     let sql = `
-      UPDATE chart
+      UPDATE user_chart
         SET cosigns = ${cosigns}
         WHERE id = ${id}
     `;
@@ -95,20 +138,8 @@ app.patch('/chart/:id', (req, res) => {
   }
 })
 
-app.get('/charts/all', (req, res) => {
-  let sql = 'SELECT * FROM chart'
-  db.query(sql, (err, data, fields) => {
-    if (err) throw err
-    res.json({
-      status: 200,
-      data,
-      message: 'All charts retreived successfully'
-    })
-  })
-})
-
-app.post('/charts/new', (req, res) => {
-  let sql = "INSERT INTO chart (type, items, author, cosigns) VALUES (?, ?, ?, ?)"
+app.post('/user-charts', (req, res) => {
+  let sql = "INSERT INTO user_chart (type, items, author, cosigns) VALUES (?, ?, ?, ?)"
   const { type, items, author } = req.body;
   let images = []
 
@@ -134,7 +165,7 @@ app.post('/charts/new', (req, res) => {
 
         createMontage(images, id)
           .then((url) => {
-            let sql = "UPDATE chart set montage=? where id=?"
+            let sql = "UPDATE user_chart set montage=? where id=?"
             db.query(sql, [url, id], (err, data, fields) => {
               if (err) {
                 console.log(err)
@@ -183,6 +214,29 @@ app.get('/artists', (req, res) => {
       }
     }).catch((err) => {
       res.send(err)
+    })
+})
+
+app.get('/search', (req, res) => {
+  //search?type=album&artist=Drake&period=all-time&q=Query
+  const { type, artist, period, q } = req.query;
+  spotifyApi.search(artist ? artist + ' ' : '' + q, [type], {limit: resultsLimit})
+    .then((data) => {
+      const typeKey = type + 's';
+      const results = data.body[typeKey].items;
+      const uniqResults = uniqBy(results, 'name')
+      const uniqResultsWithImages = uniqResults.filter((r) => {
+        if (r.images && r.images.length) {
+          return true
+        } else {
+          return false
+        }
+      })
+      if (uniqResults.length) {
+        res.status(200).send(uniqResults)
+      } else {
+        res.status(200).send(null)
+      }
     })
 })
 
