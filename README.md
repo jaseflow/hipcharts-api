@@ -22,9 +22,28 @@ DEALLOCATE PREPARE alterIfNotExists;
 
 # Create Chart table
 ```
-CREATE TABLE CHART (
-ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-NAME VARCHAR(30),
-QUERY VARCHAR(50),
-SUGGESTIONS VARCHAR(30))
+CREATE TABLE chart (
+chart_id VARCHAR(100),
+name VARCHAR(30),
+query VARCHAR(50),
+SUGGESTIONS VARCHAR(500),
+PRIMARY KEY (chart_id));
+```
+
+# Create UserChart table
+```
+CREATE TABLE user_chart (
+user_chart_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+items VARCHAR(200),
+author VARCHAR(100),
+cosigns INT DEFAULT 0,
+chart_id VARCHAR(100),
+PRIMARY KEY (user_chart_id));
+```
+
+# Create User table
+```
+CREATE TABLE user (
+user_id VARCHAR(100),
+PRIMARY KEY (user_id));
 ```

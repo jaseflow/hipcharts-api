@@ -62,13 +62,12 @@ app.options('*', cors());  // enable pre-flight
 
 // routes
 app.post('/charts', (req, res) => {
-  let sql = "INSERT INTO CHART (name, query, suggestions) VALUES (?, ?, ?)"
-  const { name, query, suggestions } = req.body;
+  let sql = "INSERT INTO CHART (name, query) VALUES (?, ?)"
+  const { name, query } = req.body;
 
   let values = [
     name,
     query,
-    suggestions,
   ]
 
   db.query(sql, values, (err, data) => {
@@ -106,7 +105,6 @@ app.get('/user-charts', (req, res) => {
 app.get('/user-charts/:id', (req, res) => {
   const id = req.params.id
   let sql = `SELECT * FROM user_chart where id = ${id}`
-  console.log(id)
   db.query(sql, (err, data, fields) => {
     if (err) throw err
     res.json({
@@ -220,7 +218,13 @@ app.get('/artists', (req, res) => {
 app.get('/search', (req, res) => {
   //search?type=album&artist=Drake&period=all-time&q=Query
   const { type, artist, period, q } = req.query;
-  spotifyApi.search(artist ? artist + ' ' : '' + q, [type], {limit: resultsLimit})
+  let searchQuery;
+  if (artist) {
+    searchQuery = artist + ' ' + q
+  } else {
+    searchQuery = q
+  }
+  spotifyApi.search(searchQuery, [type], {limit: resultsLimit})
     .then((data) => {
       const typeKey = type + 's';
       const results = data.body[typeKey].items;
