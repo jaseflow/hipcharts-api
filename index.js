@@ -136,50 +136,72 @@ app.patch('/user-charts/:id', (req, res) => {
   }
 })
 
-app.post('/user-charts', (req, res) => {
-  let sql = "INSERT INTO user_chart (type, items, author, cosigns) VALUES (?, ?, ?, ?)"
-  const { type, items, author } = req.body;
-  let images = []
 
-  let values = [
-    type,
-    items,
-    author,
-    0
-  ]
-  db.query(sql, values, (err, data) => {
-    const id = data.insertId;
-    if (err) {
-      console.log(err);
+
+app.post('/user-charts', (req, res) => {
+    const { type, items, author, artist } = req.body;
+    let chart_id
+
+    const createUserChart = () => {
+        let sql = "INSERT INTO user_chart (items, cosigns, author, chart_id) VALUES (?, ?, ?)"
+        let images = []
+
+        let values = [
+            items,
+            0,
+            author,
+            chart_id,
+        ]
+        db.query(sql, values, (err, data) => {
+            const id = data.insertId;
+            if (err) {
+                console.log(err);
+            }
+
+            request.get(`${process.env.API_URL}/${type}?ids=${items}`, (err, response) => {
+                if (!err && response.statusCode == 200) {
+                    const items = JSON.parse(response.body);
+
+                    for (let i = 0; i < items.length; i++) {
+                        images.push(items[i].images[0].url);
+                    }
+
+                    createMontage(images, id)
+                        .then((url) => {
+                            let sql = "UPDATE user_chart set montage=? where id=?"
+                            db.query(sql, [url, id], (err, data, fields) => {
+                                if (err) {
+                                    console.log(err)
+                                    return
+                                }
+                                console.log('Saved montage URL');
+                            })
+                        })
+                } else {
+                    console.log('Error accessing item metadata URL');
+                }
+            })
+
+            res.status(200).send(data);
+
+        })
     }
 
-    request.get(`${process.env.API_URL}/${type}?ids=${items}`, (err, response) => {
-      if (!err && response.statusCode == 200) {
-        const items = JSON.parse(response.body);
-
-        for (let i = 0; i < items.length; i++) {
-          images.push(items[i].images[0].url);
-        }
-
-        createMontage(images, id)
-          .then((url) => {
-            let sql = "UPDATE user_chart set montage=? where id=?"
-            db.query(sql, [url, id], (err, data, fields) => {
-              if (err) {
-                console.log(err)
-                return
-              }
-              console.log('Saved montage URL');
+    // Check for existing Chart
+    db.query('SELECT * FROM chart WHERE type=? AND artist=?', [type, artist], (err, data) => {
+        if (data) {
+            // Chart Exists
+            chart_id = data.id
+            createUserChart()
+        } else {
+            // Create new Chart
+            db.query('INSERT INTO chart (type, artist) VALUES (?, ?)', [type, artist], (err, data) => {
+                chart_id = data.id
+                createUserChart()
             })
-          })
-      } else {
-        console.log('Error accessing item metadata URL');
-      }
+        }
     })
 
-    res.status(200).send(data);
-
-  })
 
 })
 
